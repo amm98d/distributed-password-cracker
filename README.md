@@ -13,6 +13,11 @@ This repository is a college semester project for the course "Parallel and Distr
 - Maximum length for passwords -> 8 characters
 - Only lower case alphabets (a-z)
 
+## How To Run
+
+- Compilation: ```mpicc -fopenmp main.c -lcrypt -o main```
+- Execution: ```mpiexec -n x ./main``` [x can be any integer]
+
 ## Contribution Guidelines
 Each commit must have only atomic changes i.e. not more than 1 update. For example, it should not be the case that a single commit resolves an error and also implements a new function/feature.
 
