@@ -18,6 +18,21 @@ This repository is a college semester project for the course "Parallel and Distr
 - Compilation: ```mpicc -fopenmp main.c -lcrypt -o main```
 - Execution: ```mpiexec -n x ./main``` [x can be any integer]
 
+## How To Make mpiuser Sudoer
+- before login to your mpiuser or YOUR_USER_NAME, 
+- RUN the following commands
+
+- sudo usermod -a -G YOUR_USER_NAME
+- sudo nano /etc/sudoers
+
+- NOW, add your username in the file like this:
+- YOUR_USER_NAME ALL=(ALL)  ALL
+
+- NOW, Login to mpiuser or YOUR_USER_NAME
+- Compilation: ```mpicc -fopenmp main.c -lcrypt -o main```
+- Execution: ```sudo mpiexec -n x ./main``` [x can be any integer]
+- NOW YOU CAN ENJOY ALL THE SUDO PREVILIGES
+
 ## Contribution Guidelines
 Each commit must have only atomic changes i.e. not more than 1 update. For example, it should not be the case that a single commit resolves an error and also implements a new function/feature.
 
