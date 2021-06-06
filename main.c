@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,10 +10,10 @@
 
 int main(int argc, char* argv[]){	
 
-/*	char id[] = "mpiuser";*/
-/*	char salt[] = "$6$4GfdWqHx$";*/
-/*	char *encrypted = crypt(id, salt);*/
-/*	printf("%s\n",encrypted);*/
+	//char id[] = "1234";
+	//char salt[] = "$6$lKnEdTX3$";
+	//char *encrypted = crypt(id, salt);
+	//printf("%s\n",encrypted);
 
 	int nprocs, rank;
 
@@ -49,9 +50,68 @@ int main(int argc, char* argv[]){
 /*		char username[] = 	;*/
 /*		printf("Enter username: ");*/
 /*		if (scanf("%s" , username)){}*/
-		char *targetHash = "$6$ap6wFyoK$2cB1M133QM8UeBpEA5BM8Jk9vfqvhA3ehCxmUMJDTph5DeFYrqYxHi2mp7Ey0TVd5XB4AeHLotPxlLJ.dBF7v0:18700:0:99999:7:::";
-		size_t hashLen = strlen(targetHash);
 
+
+		char username[30];
+		size_t usernameLen;
+		
+		printf("Please enter the username: ");
+		int removeWarning = scanf("%s", username);
+		printf("Your have entered %s.", username);
+		usernameLen = strlen(username);
+		int nameLen = (int) usernameLen;
+		printf("Its lngth is %d.\n\n", nameLen);
+
+
+
+
+
+		//Reading file and extracting required line
+		FILE * fp;
+		char * line = NULL;
+		size_t len = 0;
+		ssize_t read;
+
+		
+		// Reading /etc/shadow
+		// For now i have copied the content in a local file sample.txt
+		// We can replace it with /etc/shadow path and run with sudo command to give the permission to read /etc/shadow file in the program
+		fp = fopen("sample.txt", "r");
+		if (fp == NULL){
+				printf("This is null %s", line);
+				fclose(fp);
+				MPI_Finalize();
+				return 0;
+		    }
+
+		while ((read = getline(&line, &len, fp)) != -1) {
+			
+			//comparing username
+			int result = strncmp(username, line, nameLen);
+			if(result == 0){
+				printf("%s\n", line);
+				printf("Equal\n");
+				printf("Length of row is %d\n",(int)read);
+				break;
+			}
+		}
+		fclose(fp);
+		
+		
+		
+		
+		//target hash and its length
+		char *targetHash = malloc(98 * sizeof(char));
+		memcpy(targetHash, line + nameLen + 1, 98 * sizeof(char));
+		int targetHashLen = (int)strlen(targetHash);
+		printf("Hash to Compare :\n%s\n",targetHash);
+		printf("Length of Hash to Comapre :\n%d\n\n",targetHashLen);
+
+
+		
+		
+		
+		
 		// each process gets equal range i.e., (total permutations) / (#slaves)
 
 		// [TODO]
@@ -61,7 +121,18 @@ int main(int argc, char* argv[]){
 		int iproc, chunkStart=0, chunkLength=totalPermutations/(nprocs-1), abort=0;
 		MPI_Status status;
 
-		printf("Master: The hash to crack is:\n%d\n\n",targetHash);
+		printf("Master: The hash to crack is:\n%s\n\n",targetHash);
+
+
+
+
+
+
+
+
+
+
+
 
 		// distributing the array
 		for (iproc=1;iproc<nprocs;iproc++){
