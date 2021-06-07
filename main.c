@@ -55,34 +55,29 @@ int main(int argc, char* argv[]){
 		char username[30];
 		size_t usernameLen;
 		
-		printf("Please enter the username: ");
+		printf("Please enter Username: ");
 		int removeWarning = scanf("%s", username);
-		printf("Your have entered %s.", username);
+		printf("\nYour have entered %s.", username);
 		usernameLen = strlen(username);
 		int nameLen = (int) usernameLen;
-		printf("Its lngth is %d.\n\n", nameLen);
-
-
-
-
+		printf(" It's length is %d.\n\n", nameLen);
 
 		//Reading file and extracting required line
 		FILE * fp;
 		char * line = NULL;
 		size_t len = 0;
 		ssize_t read;
-
 		
 		// Reading /etc/shadow
 		// For now i have copied the content in a local file sample.txt
 		// We can replace it with /etc/shadow path and run with sudo command to give the permission to read /etc/shadow file in the program
 		fp = fopen("sample.txt", "r");
 		if (fp == NULL){
-				printf("This is null %s", line);
-				fclose(fp);
-				MPI_Finalize();
-				return 0;
-		    }
+			printf("This is null %s", line);
+			fclose(fp);
+			MPI_Finalize();
+			return 0;
+		}
 
 		while ((read = getline(&line, &len, fp)) != -1) {
 			
@@ -96,8 +91,6 @@ int main(int argc, char* argv[]){
 			}
 		}
 		fclose(fp);
-		
-		
 		
 		
 		//target hash and its length
