@@ -40,27 +40,25 @@ int main(int argc, char* argv[]){
 		printf("PDC Project - Distributed Password Cracker\n");
 		printf("============================================\n\n");
 
-		// [TODO]
-/*		1. Receive username as input*/
-/*		2. /etc/shadow file/
-/*		2. Store hash found against the username in the variable targetHash*/
-
 		// initializing variables
-/*		int count, i=0, toSearch;*/
-/*		char username[] = 	;*/
-/*		printf("Enter username: ");*/
-/*		if (scanf("%s" , username)){}*/
+		// int count, i=0, toSearch;
+		// char username[] = 	;
+		// printf("Enter username: ");
+		// if (scanf("%s" , username)){}
 
-
+		// =============================================================================================
+		// STEP-1: Take username input
+		// =============================================================================================
 		char username[30];
-		size_t usernameLen;
-		
 		printf("Please enter Username: ");
-		int removeWarning = scanf("%s", username);
+		if (scanf("%s", username)){}
 		printf("\nYour have entered %s.", username);
-		usernameLen = strlen(username);
-		int nameLen = (int) usernameLen;
+		int nameLen = (int)(strlen(username));
 		printf(" It's length is %d.\n\n", nameLen);
+
+		// =============================================================================================
+		// STEP-2: Read etc/shadow file
+		// =============================================================================================
 
 		//Reading file and extracting required line
 		FILE * fp;
@@ -91,42 +89,27 @@ int main(int argc, char* argv[]){
 			}
 		}
 		fclose(fp);
-		
-		
+
 		//target hash and its length
 		char *targetHash = malloc(98 * sizeof(char));
 		memcpy(targetHash, line + nameLen + 1, 98 * sizeof(char));
 		int targetHashLen = (int)strlen(targetHash);
 		printf("Hash to Compare :\n%s\n",targetHash);
 		printf("Length of Hash to Comapre :\n%d\n\n",targetHashLen);
-
-
-		
-		
-		
-		
-		// each process gets equal range i.e., (total permutations) / (#slaves)
+	
+		// =============================================================================================
+		// STEP-3: Distribute workloads
+		// =============================================================================================
 
 		// [TODO]
 /*		1. Calculate total number of permutations*/
-
 		int numDigits = 4, totalPermutations = 10000;
 		int iproc, chunkStart=0, chunkLength=totalPermutations/(nprocs-1), abort=0;
 		MPI_Status status;
 
 		printf("Master: The hash to crack is:\n%s\n\n",targetHash);
 
-
-
-
-
-
-
-
-
-
-
-
+		// each process gets equal range i.e., (total permutations) / (#slaves)
 		// distributing the array
 		for (iproc=1;iproc<nprocs;iproc++){
 			// MPI_Send(&chunkLength, 1, MPI_INT, iproc, 0, MPI_COMM_WORLD);// chunklenght sent with tag 0
@@ -134,7 +117,10 @@ int main(int argc, char* argv[]){
 			chunkStart += chunkLength;
 		}
 
-/*		// waiting for good news*/
+		// =============================================================================================
+		// STEP-4: Sit tight and wait for good news
+		// =============================================================================================
+
 /*		MPI_Recv(&abort, 1, MPI_INT, MPI_ANY_SOURCE, 3, MPI_COMM_WORLD, &status);// abort message received with tag 3*/
 /*		printf("Master: Process %d has found the number!\n", status.MPI_SOURCE);*/
 /*		printf("Master: Informing all processes to abort!\n");*/
