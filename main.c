@@ -57,7 +57,7 @@ int main(int argc, char* argv[]){
 		printf(" It's length is %d.\n\n", nameLen);
 
 		// =============================================================================================
-		// STEP-2: Read etc/shadow file
+		// STEP-2: Read /etc/shadow file
 		// =============================================================================================
 
 		//Reading file and extracting required line
@@ -69,7 +69,7 @@ int main(int argc, char* argv[]){
 		// Reading /etc/shadow
 		// For now i have copied the content in a local file sample.txt
 		// We can replace it with /etc/shadow path and run with sudo command to give the permission to read /etc/shadow file in the program
-		fp = fopen("sample.txt", "r");
+		fp = fopen("/etc/shadow", "r");
 		if (fp == NULL){
 			printf("This is null %s", line);
 			fclose(fp);
