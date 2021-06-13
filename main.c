@@ -12,7 +12,7 @@ char *decimalToAlphabet(int deci)
 {
 	char *s = malloc(30);
 	int i = 0;
-	while (deci != 0)
+	while (deci-- != 0)
 	{
 		int alpha = deci % 26;
 		char ch = alpha + 97;
@@ -54,17 +54,24 @@ int main(int argc, char *argv[])
 		printf("============================================\n\n");
 
 		// int xx = 0;
-		// for (;xx<100;xx++)
+		// for (; xx < 100; xx++)
+		// {
 		// 	printf("%s - ", decimalToAlphabet(xx));
-
+		// 	// char targ[] = "jjjj";
+		// 	// if (strcmp(decimalToAlphabet(xx), targ) == 0)
+		// 	// 	printf("%s\n", decimalToAlphabet(xx));
+		// }
+		// printf("DONE\n");
 		// =============================================================================================
 		// STEP-1: Take username input
 		// =============================================================================================
 
 		// initializing variables
 		char username[30] = "waqar";
-		// printf("Please enter Username: ");
-		// if (scanf("%s", username)){}
+		printf("Please enter Username: ");
+		if (scanf("%s", username))
+		{
+		}
 		printf("\nYour have entered %s.", username);
 		int nameLen = (int)(strlen(username));
 		printf(" It's length is %d.\n\n", nameLen);
@@ -80,8 +87,6 @@ int main(int argc, char *argv[])
 		ssize_t read;
 
 		// Reading /etc/shadow
-		// For now i have copied the content in a local file sample.txt
-		// We can replace it with /etc/shadow path and run with sudo command to give the permission to read /etc/shadow file in the program
 		fp = fopen("/etc/shadow", "r");
 		if (fp == NULL)
 		{
@@ -111,7 +116,7 @@ int main(int argc, char *argv[])
 		// STEP-3: Distribute workloads
 		// =============================================================================================
 
-		int numDigits = 3, totalPermutations = pow(26, numDigits);
+		int numDigits = 8, totalPermutations = pow(26, numDigits);
 		int iproc, chunkStart = 0, chunkLength = totalPermutations / (nprocs - 1), abort = 0;
 		MPI_Status status;
 
@@ -120,6 +125,9 @@ int main(int argc, char *argv[])
 		// each process gets equal range i.e., (total permutations) / (#slaves)
 		for (iproc = 1; iproc < nprocs; iproc++)
 		{
+			if (iproc==nprocs-1 && chunkStart+chunkLength<totalPermutations-1){
+				chunkLength = chunkLength + (totalPermutations)-(chunkStart+chunkLength);
+			}
 			MPI_Send(&targetHashLen, 1, MPI_INT, iproc, 0, MPI_COMM_WORLD);			 // targetHashLen sent with tag 0
 			MPI_Send(targetHash, targetHashLen, MPI_CHAR, iproc, 1, MPI_COMM_WORLD); // targetHash sent with tag 1
 			MPI_Send(&chunkStart, 1, MPI_INT, iproc, 2, MPI_COMM_WORLD);			 // chunkStart sent with tag 2
@@ -134,12 +142,12 @@ int main(int argc, char *argv[])
 		MPI_Recv(&abort, 1, MPI_INT, MPI_ANY_SOURCE, 4, MPI_COMM_WORLD, &status); // abort message received with tag 4
 		printf("Master: Process %d has cracked the password!\n", status.MPI_SOURCE);
 		printf("Master: Informing all processes to abort!\n");
-		printf("============================================\n");
-		printf("Master: The password is...drum roll...\n\t%s\n", decimalToAlphabet(abort));
-		printf("============================================\n");
 		// sending abort messages
 		for (iproc = 1; iproc < nprocs; iproc++)
 			MPI_Send(&abort, 1, MPI_INT, iproc, 4, MPI_COMM_WORLD); // abort messages sent with tag 4
+		printf("============================================\n");
+		printf("Master: The password is...drum roll...\n\t%s\n", decimalToAlphabet(abort));
+		printf("============================================\n");
 	}
 
 	// slaves
@@ -161,26 +169,26 @@ int main(int argc, char *argv[])
 		\tChunkLength: %d\n\n",
 			   rank, targetHash, chunkStart, chunkLength);
 
-		// using openmp to create 2 threads - one for processing and one for listening for abort message
-		#pragma omp parallel num_threads(2)
+// using openmp to create 2 threads - one for processing and one for listening for abort message
+#pragma omp parallel num_threads(2)
 		{
 			// thread-1: processing
 			if (omp_get_thread_num() == 0)
 			{
 				char *salt = malloc(12 * sizeof(char));
 				memcpy(salt, targetHash, 12 * sizeof(char));
-				int i = 0;
-				for (; i < chunkLength; i++)
+				int i = chunkStart;
+				for (; i < chunkStart + chunkLength; i++)
 				{
 					// abandon rest of searching if abort message received
 					if (abort != 0)
 					{
-						printf("\nProcess %d: Aborting!\n\n", rank);
+						printf("\nProcess %d: Aborting!", rank);
 						break;
 					}
 					printf("Process %d: Attempt No.(%d).\n", rank, i);
 					// if found: notify master
-					if (strcmp(crypt(decimalToAlphabet(i), salt), targetHash)==0)
+					if (strcmp(crypt(decimalToAlphabet(i), salt), targetHash) == 0)
 					{
 						printf("Process %d: I have cracked the password :-)\n", rank);
 						MPI_Send(&i, 1, MPI_INT, 0, 4, MPI_COMM_WORLD); // abort message with tag 3
