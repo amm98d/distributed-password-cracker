@@ -49,9 +49,9 @@ int main(int argc, char* argv[]){
 		// =============================================================================================
 		// STEP-1: Take username input
 		// =============================================================================================
-		char username[30];
-		printf("Please enter Username: ");
-		if (scanf("%s", username)){}
+		char username[30] = "mpiuser";
+		// printf("Please enter Username: ");
+		// if (scanf("%s", username)){}
 		printf("\nYour have entered %s.", username);
 		int nameLen = (int)(strlen(username));
 		printf(" It's length is %d.\n\n", nameLen);
@@ -71,31 +71,23 @@ int main(int argc, char* argv[]){
 		// We can replace it with /etc/shadow path and run with sudo command to give the permission to read /etc/shadow file in the program
 		fp = fopen("/etc/shadow", "r");
 		if (fp == NULL){
-			printf("This is null %s", line);
+			printf("File not found\n");
 			fclose(fp);
 			MPI_Finalize();
 			return 0;
 		}
 
 		while ((read = getline(&line, &len, fp)) != -1) {
-			
 			//comparing username
 			int result = strncmp(username, line, nameLen);
-			if(result == 0){
-				printf("%s\n", line);
-				printf("Equal\n");
-				printf("Length of row is %d\n",(int)read);
-				break;
-			}
+			if(result == 0){break;}
 		}
 		fclose(fp);
 
-		//target hash and its length
+		// target hash and its length
 		char *targetHash = malloc(98 * sizeof(char));
 		memcpy(targetHash, line + nameLen + 1, 98 * sizeof(char));
 		int targetHashLen = (int)strlen(targetHash);
-		printf("Hash to Compare :\n%s\n",targetHash);
-		printf("Length of Hash to Comapre :\n%d\n\n",targetHashLen);
 	
 		// =============================================================================================
 		// STEP-3: Distribute workloads
@@ -103,16 +95,17 @@ int main(int argc, char* argv[]){
 
 		// [TODO]
 /*		1. Calculate total number of permutations*/
-		int numDigits = 4, totalPermutations = 10000;
+		int numDigits = 4, totalPermutations = pow(26, numDigits);
+		printf("%d\n\n",totalPermutations);
 		int iproc, chunkStart=0, chunkLength=totalPermutations/(nprocs-1), abort=0;
 		MPI_Status status;
 
-		printf("Master: The hash to crack is:\n%s\n\n",targetHash);
+		printf("Master: The hash to crack is: %s\n\n",targetHash);
 
 		// each process gets equal range i.e., (total permutations) / (#slaves)
-		// distributing the array
 		for (iproc=1;iproc<nprocs;iproc++){
-			// MPI_Send(&chunkLength, 1, MPI_INT, iproc, 0, MPI_COMM_WORLD);// chunklenght sent with tag 0
+			MPI_Send(&targetHashLen, 1, MPI_INT, iproc, 0, MPI_COMM_WORLD);// targetHashLen sent with tag 0
+			MPI_Send(targetHash, targetHashLen, MPI_INT, iproc, 1, MPI_COMM_WORLD);// targetHash sent with tag 1
 			// MPI_Send(targetHash, hashLen, MPI_CHAR, iproc, 1, MPI_COMM_WORLD);// number to search sent with tag 1
 			chunkStart += chunkLength;
 		}
@@ -131,17 +124,20 @@ int main(int argc, char* argv[]){
 
 	// slaves
 	else { 
-		// // initializing variables
-		// int chunkLength, abort=0;
-		// // each slave receiving size of array and allocating memory
-		// MPI_Recv(&chunkLength, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		// int *arrayToSearch = malloc(chunkLength * sizeof(int));
-		// // receiving the array itself
-		// MPI_Recv(arrayToSearch, chunkLength, MPI_INT, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		// initializing variables
+		int chunkLength, abort=0, targetHashLen;
+
+		// each slave receiving targetHashLen and allocating memory
+		MPI_Recv(&targetHashLen, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		char *targetHash = malloc(targetHashLen * sizeof(char));
+
+		// receiving targetHash itself
+		MPI_Recv(targetHash, targetHashLen, MPI_INT, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		printf("Process %d has local data: ",rank);
+
 		// // receiving the number to search
 		// MPI_Recv(&toSearch, 1, MPI_INT, 0, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		
-		// printf("Process %d has local data: ",rank);
 		// int i;
 		// for (i=0;i<chunkLength;i++){
 		// 	printf("%d ",arrayToSearch[i]);
