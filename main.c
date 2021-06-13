@@ -8,8 +8,38 @@
 #include <unistd.h>
 #include <math.h>
 
-int main(int argc, char *argv[])
-{
+/*
+def decimalToAlphabet(deci):
+    alphabet, i, n = 0, 0, 0
+    res = ""
+    while(deci != 0):
+        alpha = deci % 26
+        print (alpha)
+        print (chr(alpha+97))
+        #alphabet = alphabet + alpha * pow(10, i)
+        deci = deci//26
+        #i += 1
+        res = (chr(alpha+97)) + res
+    print (res)
+
+decimalToAlphabet(208827064575)
+*/
+
+char* decimalToAlphabet (int deci) {
+	char *s = malloc(30);
+	int i = 0;
+	while (deci != 0) {
+		int alpha = deci % 26;
+		char ch = alpha + 97;
+		deci = deci/26;
+		s[i] = ch;
+		i += 1;
+	}
+	s[i] = '\0';
+	return s;
+}
+
+int main(int argc, char* argv[]){	
 
 	//char id[] = "1234";
 	//char salt[] = "$6$lKnEdTX3$";
@@ -52,7 +82,7 @@ int main(int argc, char *argv[])
 		// =============================================================================================
 		// STEP-1: Take username input
 		// =============================================================================================
-		char username[30] = "mpiuser";
+		char username[30] = "ez";
 		// printf("Please enter Username: ");
 		// if (scanf("%s", username)){}
 		printf("\nYour have entered %s.", username);
@@ -109,6 +139,7 @@ int main(int argc, char *argv[])
 		MPI_Status status;
 
 		printf("Master: The hash to crack is: %s\n\n", targetHash);
+		printf("%s\n\n", decimalToAlphabet(totalPermutations-1));
 
 		// each process gets equal range i.e., (total permutations) / (#slaves)
 		for (iproc = 1; iproc < nprocs; iproc++)
