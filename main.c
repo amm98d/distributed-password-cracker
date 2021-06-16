@@ -20,7 +20,17 @@ char *decimalToAlphabet(int deci)
 		s[i++] = ch;
 	}
 	s[i] = '\0';
-	return s;
+	// Now reversing the string
+	int count = 0;
+	while (s[count] != '\0')
+		count++;
+	int lengthS = count - 1;
+	for (i = 0; i < count; ++i) {
+		r[i] = s[lengthS];
+		--lengthS;
+	}
+	r[i] = '\0';
+	return r;
 }
 
 char *fileReading(char username[], int nameLen)
