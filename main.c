@@ -23,6 +23,42 @@ char *decimalToAlphabet(int deci)
 	return s;
 }
 
+char *fileReading(char username[], int nameLen)
+{
+	//Reading file and extracting required line
+	FILE *fp;
+	char *line = NULL;
+	size_t len = 0;
+	ssize_t read;
+
+	// Reading /etc/shadow
+	fp = fopen("/etc/shadow", "r");
+	if (fp == NULL)
+	{
+		printf("File not found\n");
+		fclose(fp);
+		MPI_Finalize();
+		return NULL;
+	}
+
+	while ((read = getline(&line, &len, fp)) != -1)
+	{
+		//comparing username
+		int result = strncmp(username, line, nameLen);
+		if (result == 0)
+		{
+			break;
+		}
+	}
+	fclose(fp);
+
+	// target hash and its length
+	char *targetHash = malloc(98 * sizeof(char));
+	memcpy(targetHash, line + nameLen + 1, 98 * sizeof(char));
+
+	return targetHash;
+}
+
 int main(int argc, char *argv[])
 {
 
@@ -53,15 +89,6 @@ int main(int argc, char *argv[])
 		printf("PDC Project - Distributed Password Cracker\n");
 		printf("============================================\n\n");
 
-		// int xx = 0;
-		// for (; xx < 100; xx++)
-		// {
-		// 	printf("%s - ", decimalToAlphabet(xx));
-		// 	// char targ[] = "jjjj";
-		// 	// if (strcmp(decimalToAlphabet(xx), targ) == 0)
-		// 	// 	printf("%s\n", decimalToAlphabet(xx));
-		// }
-		// printf("DONE\n");
 		// =============================================================================================
 		// STEP-1: Take username input
 		// =============================================================================================
@@ -80,36 +107,7 @@ int main(int argc, char *argv[])
 		// STEP-2: Read /etc/shadow file
 		// =============================================================================================
 
-		//Reading file and extracting required line
-		FILE *fp;
-		char *line = NULL;
-		size_t len = 0;
-		ssize_t read;
-
-		// Reading /etc/shadow
-		fp = fopen("/etc/shadow", "r");
-		if (fp == NULL)
-		{
-			printf("File not found\n");
-			fclose(fp);
-			MPI_Finalize();
-			return 0;
-		}
-
-		while ((read = getline(&line, &len, fp)) != -1)
-		{
-			//comparing username
-			int result = strncmp(username, line, nameLen);
-			if (result == 0)
-			{
-				break;
-			}
-		}
-		fclose(fp);
-
-		// target hash and its length
-		char *targetHash = malloc(98 * sizeof(char));
-		memcpy(targetHash, line + nameLen + 1, 98 * sizeof(char));
+		char *targetHash = fileReading(username, nameLen);
 		int targetHashLen = (int)strlen(targetHash);
 
 		// =============================================================================================
@@ -125,8 +123,9 @@ int main(int argc, char *argv[])
 		// each process gets equal range i.e., (total permutations) / (#slaves)
 		for (iproc = 1; iproc < nprocs; iproc++)
 		{
-			if (iproc==nprocs-1 && chunkStart+chunkLength<totalPermutations-1){
-				chunkLength = chunkLength + (totalPermutations)-(chunkStart+chunkLength);
+			if (iproc == nprocs - 1 && chunkStart + chunkLength < totalPermutations - 1)
+			{
+				chunkLength = chunkLength + (totalPermutations) - (chunkStart + chunkLength);
 			}
 			MPI_Send(&targetHashLen, 1, MPI_INT, iproc, 0, MPI_COMM_WORLD);			 // targetHashLen sent with tag 0
 			MPI_Send(targetHash, targetHashLen, MPI_CHAR, iproc, 1, MPI_COMM_WORLD); // targetHash sent with tag 1
@@ -194,9 +193,6 @@ int main(int argc, char *argv[])
 						MPI_Send(&i, 1, MPI_INT, 0, 4, MPI_COMM_WORLD); // abort message with tag 3
 						break;
 					}
-					// sleep for demonstration
-					// if (rank != 1)
-					// 	sleep(5);
 				}
 			}
 			// thread-2: listening for abort message
