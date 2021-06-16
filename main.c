@@ -11,6 +11,7 @@
 char *decimalToAlphabet(int deci)
 {
 	char *s = malloc(30);
+	char *r = malloc(30);
 	int i = 0;
 	while (deci-- != 0)
 	{
